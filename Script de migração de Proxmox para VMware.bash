@@ -24,7 +24,7 @@ echo "Instalando dependências..."
 echo ""
 apt install sshpass -y
 
-# List already existing VM's and ask for vmID
+# Listando as VMs existentes
 echo "== Buscando e exibindo a lista de VM's deste nó!"
 echo ""
 echo -ne '#####                     (33%)\r'
@@ -46,12 +46,11 @@ echo ""
 
 read -p "Agora, digite o número do Disco(verifique essa informação na saida acima): " vmDiskID
 echo ""
-# Ask user for version
 
 echo "## Preparando o disco da VM para conversão!"
 echo ""
 
-## Checking if temp dir is available..."
+## Checando a existÊncia de diretórios de uso..."
 echo "-- Verificando a existência do diretório de serviço...."
 echo ""
 echo -ne '#####                     (33%)\r'
@@ -76,7 +75,7 @@ else
     mkdir /root/DiscosParaMigrar
 fi
 
-# Check if image is available and download if needed
+# Checando a existência de discos
 if [ -f /root/DiscosParaMigrar/vm-$vmID-disk-$vmDiskID*.vmdk ] 
 then
     echo "-- O disco dessa VM já foi convertido para VMDK."
