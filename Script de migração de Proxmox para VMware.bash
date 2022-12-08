@@ -37,6 +37,8 @@ read -s -p "Insira sua senha: " SSHPASS
 echo ""
 echo ""
 
+sshpass -p $SSHPASS ssh-copy-id $DstHostUser@$DstHost
+
 # Listando as VMs do KVM
 echo "== Buscando e exibindo a lista de VM's deste nó!"
 echo ""
@@ -249,7 +251,19 @@ echo ""
 
 echo -e "Processo concluido!\n\n OBSERVAÇÃO:\n Agora crie uma VM dentro do VMWare e importe para\n ela o disco exportado do Proxmox por este script "
 
-rm -f /root/DiscosParaMigrar/*.vmdk
+read -N 1 -p "Quer apagar os discos convertidos. Continue (y/N)? " answer
+echo 
+
+if [ "${answer,,}" == "y" ]
+then
+    rm -f /root/DiscosParaMigrar/*.vmdk
+    sleep 1
+    echo 'Discos convertidos apagados a pasta de armazenamento.'
+
+else
+    echo "-- O(s) disco(s) convertidos da VM $vmID não serão apagados."
+fi
+
 rm -f /root/DiscosParaMigrar/tmp/*
 unset SSHPASS
 unset vmDisk0
