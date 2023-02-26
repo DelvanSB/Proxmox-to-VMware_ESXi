@@ -9,7 +9,9 @@ DstHostUser="nil"
 VolStorage="nil"
 SSHPASS="nil"
 
-echo ""
+rm -f /root/DiscosParaMigrar/tmp/*
+
+echo 
 
 BAR='############## Início do Script de migração de Proxmox para VMware ESXi ##############'   # this is full bar, e.g. 20 chars
 
@@ -18,30 +20,31 @@ for i in {1..80}; do
     sleep .05                 # wait 100ms between "frames"
 done
 
-echo ""
-echo ""
+echo 
+echo 
 
 echo "Instalando dependências..."
-echo ""
+echo 
 apt install sshpass -y
 
-echo ""
-echo "-- Preparando para criar a conexão com o host de destino..."
-echo ""
+#echo 
+#echo "-- Preparando para criar a conexão com o host de destino..."
+#echo 
 
-read -p "Por favor, insira o ip ou hostname do VMware ESXi: " DstHost
-echo ""
-read -p "Agora insira o usuário do VMware: " DstHostUser
-echo ""
-read -s -p "Insira sua senha: " SSHPASS
-echo ""
-echo ""
+#read -p "Por favor, insira o ip ou hostname do VMware ESXi: " DstHost
+#echo 
+#read -p "Agora insira o usuário do VMware: " DstHostUser
+#echo 
+#read -s -p "Insira sua senha: " SSHPASS
+#echo 
+#echo 
 
-sshpass -p $SSHPASS ssh-copy-id $DstHostUser@$DstHost
+#sshpass -p $SSHPASS ssh-copy-id $DstHostUser@$DstHost
+#echo 
 
 # Listando as VMs do KVM
 echo "== Buscando e exibindo a lista de VM's deste nó!"
-echo ""
+echo 
 echo -ne '#####                     (33%)\r'
 sleep .09
 echo -ne '#########                 (40%)\r'
@@ -55,14 +58,14 @@ sleep .09
 echo -ne '#########################  (100%)\r'
 echo -ne '\n'
 qm list
-echo ""
+echo 
 
 read -p "Por favor, digite a ID da VM a ser convertida para o VMware ESXi: " vmID
-echo ""
+echo 
 
 ## Checando se o diretório de migração existe..."
 echo "-- Verificando a existência do diretório de serviço...."
-echo ""
+echo 
 echo -ne '#####                     (33%)\r'
 sleep .09
 echo -ne '#########                 (40%)\r'
@@ -75,7 +78,7 @@ echo -ne '###################       (92%)\r'
 sleep .09
 echo -ne '#########################  (100%)\r'
 echo -ne '\n'
-echo ""
+echo 
 
 if [ -d /root/DiscosParaMigrar ] 
 then
@@ -92,46 +95,46 @@ else
 fi
 
 echo "-- Lista de discos dessa VM"
-echo ""
+echo 
 
 # Exportando para tratação
 qm config $vmID >> /root/DiscosParaMigrar/tmp/$vmID-Configs.txt
-echo ""
+echo 
 
 # Para exibição
-qm config $vmID | grep -i disk- | tail -5 | head -3 | cut -c 6-34 | cut -c 3-34 | tail -3 | head -3
+qm config $vmID | grep -i scsi | grep disk- | cut -d\ '' -f 2 | cut -d , -f 1
 # Exportando somente as informações dos discos da VM para o arquivo para ser tratado
-qm config $vmID | grep -i disk- | tail -5 | head -3 | cut -c 6-34 | cut -c 3-34 | tail -3 | head -3 >> /root/DiscosParaMigrar/tmp/$vmID-Disk.txt
-echo ""
+qm config $vmID | grep -i scsi | grep disk- | cut -d , -f 1 >> /root/DiscosParaMigrar/tmp/$vmID-Disk.txt
+echo 
 
 # Criando as variáveis das configurações da VM
-export vmDiskID0=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -c 1-34 | cut -c 1-34 | tail -3 | head -1)
-export vmDiskID1=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -c 1-34 | cut -c 1-34 | tail -2 | head -1)
-export vmDiskID2=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -c 1-34 | cut -c 1-34 | tail -1 | head -2)
-echo ""
-export vmDisk0=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -d : -f 2 | cut -c 1-34 | tail -3 | head -1)
-export vmDisk1=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -d : -f 2 | cut -c 1-34 | tail -2 | head -1)
-export vmDisk2=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i disk- | tail -5 | head -3 | cut -d : -f 2 | cut -c 1-34 | tail -1 | head -2)
-echo ""
-echo ""
+export vmDiskID0=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi0 | cut -d\  -f 2)
+export vmDiskID1=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi1 | cut -d\  -f 2)
+export vmDiskID2=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi2 | cut -d\  -f 2)
+echo 
+export vmDisk0=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi0 | cut -d : -f3)
+export vmDisk1=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi1 | cut -d : -f3)
+export vmDisk2=$(cat /root/DiscosParaMigrar/tmp/$vmID-Disk.txt | grep -i scsi2 | cut -d : -f3)
+echo 
+echo 
 export PATHvmDiskID0=$(pvesm path $vmDiskID0)
 export PATHvmDiskID1=$(pvesm path $vmDiskID1)
 export PATHvmDiskID2=$(pvesm path $vmDiskID2)
-echo ""
+echo 
 echo "Os caminhos reais dos discos estão listados abaixo"
-echo ""
+echo 
 echo -e '\n'$PATHvmDiskID0'\n'$PATHvmDiskID1'\n'$PATHvmDiskID2'\n'
-echo ""
+echo 
 echo "Estes são os discos da VM $vmID "
-echo ""
+echo 
 echo -e '\n'$vmDisk0'\n'$vmDisk1'\n'$vmDisk2'\n'
-echo ""
+echo 
 
 #read -p "Agora, digite o número do Disco(verifique essa informação na saida acima): " vmDiskID
 #echo ""
 
 echo "## Preparando o disco da VM para conversão!"
-echo ""
+echo 
 
 
 # Checando se o disco 1 da VM selecionada já foi convertido
@@ -145,11 +148,11 @@ then
     echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
     sleep .02                 # wait 100ms between "frames"
     done
-    echo ""
+    echo 
 
 else
     echo "-- Convertendo disco 1 da VM $vmID para VMDK."
-        echo ""
+        echo 
         echo "-- OBS.: ESSE PROCESSO DE CONVERSÃO PODE DEMORAR. DEPENDE DO TAMANHO DA VM!"
     cd  /root/DiscosParaMigrar
     echo "---------------------------------------------------------------------------"
@@ -158,7 +161,7 @@ else
                 /root/DiscosParaMigrar/$vmDisk0.vmdk
     echo "---------------------------------------------------------------------------"
         echo "-- Conversão concluída."
-        echo ""
+        echo 
 fi
 
 # Checando se o disco 2 da VM selecionada já foi convertido
@@ -172,11 +175,11 @@ then
     echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
     sleep .02                 # wait 100ms between "frames"
     done
-    echo ""
+    echo 
 
 else
     echo "-- Convertendo disco 2 da VM $vmID para VMDK."
-        echo ""
+        echo 
         echo "-- OBS.: ESSE PROCESSO DE CONVERSÃO PODE DEMORAR. DEPENDE DO TAMANHO DA VM!"
     cd  /root/DiscosParaMigrar
     echo "---------------------------------------------------------------------------"
@@ -185,7 +188,7 @@ else
                 /root/DiscosParaMigrar/$vmDisk1.vmdk
     echo "---------------------------------------------------------------------------"
         echo "-- Conversão concluída."
-        echo ""
+        echo 
 fi
 
 # Checando se o disco 3 da VM selecionada já foi convertido
@@ -199,11 +202,11 @@ then
     echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
     sleep .02                 # wait 100ms between "frames"
     done
-    echo ""
+    echo 
 
 else
     echo "-- Convertendo disco 3 da VM $vmID para VMDK."
-        echo ""
+        echo 
         echo "-- OBS.: ESSE PROCESSO DE CONVERSÃO PODE DEMORAR. DEPENDE DO TAMANHO DA VM!"
     cd  /root/DiscosParaMigrar
     echo "---------------------------------------------------------------------------"
@@ -212,13 +215,30 @@ else
                 /root/DiscosParaMigrar/$vmDisk2.vmdk
     echo "---------------------------------------------------------------------------"
         echo "-- Conversão concluída."
-        echo ""
+        echo 
 fi
-echo ''
+echo 
 echo "-- PREPARANDO PARA EXPORTAR O DISCO PARA O VMWARE..."
 
+#exit
+
+echo 
+echo "-- Preparando para criar a conexão com o host de destino..."
+echo 
+
+read -p "Por favor, insira o ip ou hostname do VMware ESXi: " DstHost
+echo 
+read -p "Agora insira o usuário do VMware: " DstHostUser
+echo 
+read -s -p "Insira sua senha: " SSHPASS
+echo 
+echo 
+
+sshpass -p $SSHPASS ssh-copy-id $DstHostUser@$DstHost
+echo 
+
 sshpass -p $SSHPASS ssh $DstHostUser@$DstHost du -h vmfs/volumes/ | grep -i Proxmox | cut -d / -f 3 | tail -1 >> /root/DiscosParaMigrar/tmp/$vmID-StorageID.txt
-echo ""
+echo 
 
 #echo "-- ATENÇÃO! AGORA OBSERVE AS LINHAS ACIMA, E COPIE O TRECHO REPRESENTADO PELOS "x"."
 #echo "Exemplo: ( vmfs/volumes/ xxxxxxxx-xxxxxxx-xxxx-xxxxxxxxxxxx /Proxmox )"
@@ -229,11 +249,11 @@ echo ""
 export VolStorage=$(tail -1 /root/DiscosParaMigrar/tmp/$vmID-StorageID.txt)
 
 scp /root/DiscosParaMigrar/*.vmdk $DstHostUser@$DstHost:/vmfs/volumes/$VolStorage/Proxmox/ 
-echo ""
-echo ""
-echo ""
+echo 
+echo 
+echo 
 echo "TRANSFERÊNCIA CONCLUÍDA!"
-echo ""
+echo 
 
 sshpass -p $SSHPASS ssh $DstHostUser@$DstHost vmkfstools -i /vmfs/volumes/$VolStorage/Proxmox/$vmDisk0.vmdk \
         /vmfs/volumes/$VolStorage/Proxmox/$vmDisk0-thin.vmdk -d thin 
@@ -247,22 +267,25 @@ sshpass -p $SSHPASS ssh $DstHostUser@$DstHost rm /vmfs/volumes/$VolStorage/Proxm
 echo ""
 
 echo -e "O disco $vmDisk0.vmdk exportado para o VMWare ESXi dentro da pasta Proxmox \n (previamente criada)"
-echo ""
-
-echo -e "Processo concluido!\n\n OBSERVAÇÃO:\n Agora crie uma VM dentro do VMWare e importe para\n ela o disco exportado do Proxmox por este script "
+echo 
 
 read -N 1 -p "Quer apagar os discos convertidos. Continue (y/N)? " answer
 echo 
-
 if [ "${answer,,}" == "y" ]
 then
     rm -f /root/DiscosParaMigrar/*.vmdk
     sleep 1
-    echo 'Discos convertidos apagados a pasta de armazenamento.'
+	echo
+    echo 'Discos convertidos apagados da pasta de armazenamento.'
+	echo
 
 else
+	echo
     echo "-- O(s) disco(s) convertidos da VM $vmID não serão apagados."
+	echo
 fi
+
+echo -e "Processo concluido!\n\n OBSERVAÇÃO:\n Agora crie uma VM dentro do VMWare e importe para\n ela o(s) disco(s) exportado(s) do Proxmox por este script "
 
 rm -f /root/DiscosParaMigrar/tmp/*
 unset SSHPASS
@@ -280,4 +303,4 @@ unset PATHvmDiskID0
 unset PATHvmDiskID1
 unset PATHvmDiskID2
 unset VolStorage
-echo ""
+echo 
